@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TabbedPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mypages="clr-namespace:XplaneMaster;assembly=XplaneMaster"
+             xmlns:commandPages="clr-namespace:XplaneMaster.CommandPages;assembly=XplaneMaster"
+             x:Class="XplaneMaster.XplaneCommand">
+  <!--Pages can be added as references or inline-->
+    <TabbedPage.Children>
+        <commandPages:Airports Title="Airports"/>
+        <commandPages:Weather Title="Weather"/>
+        <commandPages:Fails Title="Fails"/>
+        <commandPages:Cmds Title="CMD"/>
+        <mypages:ConnectPage Title="Info"/>
+    </TabbedPage.Children>
+</TabbedPage>
