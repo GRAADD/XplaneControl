@@ -58,16 +58,18 @@
     <Compile Include="CmdEncoder.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ConnectionType.cs" />
-    <Compile Include="DataEncoder.cs" />
+    <Compile Include="ByteOperations.cs" />
     <Compile Include="Fail.cs" />
     <Compile Include="FailPage.cs" />
     <Compile Include="Fails.cs" />
     <Compile Include="FailSubPage.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TcpPackage.cs" />
     <Compile Include="UdpHeader.cs" />
+    <Compile Include="UdpPackage.cs" />
     <Compile Include="XAirport.cs" />
-    <Compile Include="UdpMessage.cs" />
+    <Compile Include="BytesPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

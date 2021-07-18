@@ -8,6 +8,7 @@ using Plugin.Settings;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using XplaneControl;
+using XplaneMaster.MainPage;
 
 namespace XplaneMaster
 {
@@ -18,34 +19,12 @@ namespace XplaneMaster
         private Label MachinesInNetwork;
         private Label MastersInNetwork;
         private Label ConnectionState;
+        private Label ConnectedTo;
+        private Label Status;
         private Entry ipEntry;
         private string ip = "";
-        public Connection connection;
+        //public Connection connection;
         public ConnectPage()
-        {
-            if (Application.Current.Properties.ContainsKey("MasterAdress"))
-            {
-                string ip = Application.Current.Properties["MasterAdress"] as string;
-                //ConnectionCore.MasterIp = ip;
-                connection = new Connection(ip);
-                PostConnectionShow();
-                if (Application.Current.Properties.ContainsKey("Fails"))
-                {
-                    XplaneControl.Fails.Pages = Application.Current.Properties["Fails"] as List<FailPage>;
-                }
-            }
-            else
-            {
-                BeforeConnectionNew();
-            }
-            //BeforeConection();
-            
-            //Thread updatePage = new Thread(UpdatePage);
-            //updatePage.Start();
-
-        }
-
-        private void BeforeConnectionNew()
         {
             Label ipHello = new Label
             {
@@ -59,122 +38,96 @@ namespace XplaneMaster
             {
                 Text = "Connect"
             };
+            Status = new Label()
+            {
+                Text = $"Waiting for connection"
+            };
             enterButton.Clicked += EnterButton_Clicked;
             Content = new StackLayout()
             {
-                Children = { ipHello, ipEntry, enterButton }
+                Children = { ipHello, ipEntry, enterButton, Status}
             };
+            //if (Application.Current.Properties.ContainsKey("MasterAdress"))
+            //{
+            //    string ip = Application.Current.Properties["MasterAdress"] as string;
+            //    //ConnectionCore.MasterIp = ip;
+            //    Core.XplaneConnection = new Connection(ip);
+            //    PostConnectionShow();
+            //    if (Application.Current.Properties.ContainsKey("Fails"))
+            //    {
+            //        XplaneControl.Fails.Pages = Application.Current.Properties["Fails"] as List<FailPage>;
+            //    }
+            //}
+            //else
+            //{
+            //}
+            //BeforeConnectionNew();
+            //BeforeConection();
+            
+            //Thread updatePage = new Thread(UpdatePage);
+            //updatePage.Start();
+
         }
 
         private void EnterButton_Clicked(object sender, EventArgs e)
         {
             Application.Current.Properties["MasterAdress"] = ipEntry.Text;
-            connection = new Connection(ipEntry.Text);
+            Core.XplaneConnection = new Connection(ipEntry.Text);
+            //_connection = new Connection(MasterIpTxtBx.Text);
+            //SendTCP.Enabled = true;
+            //SendUDP.Enabled = true;
             PostConnectionShow();
         }
         
-
-        private void FindMaster_DrawContent()
-        {
-            Label ConnectingNow = new Label()
-            {
-                Text = "Search for masters"
-            };
-
-            String status = "";
-            var profiles = Connectivity.ConnectionProfiles;
-            var current = Connectivity.NetworkAccess;
-            status += $"Access to local network = {current == (NetworkAccess.Local)}, access to Internet = {current == (NetworkAccess.Internet)}," +
-                      $" WiFi is enabled = {profiles.Contains(ConnectionProfile.WiFi)}";
-            ConnectionState = new Label()
-            {
-                Text = status
-            };
-
-            Content = new StackLayout()
-            {
-                Children = {ConnectingNow, CurrentIp, MachinesInNetwork, MastersInNetwork, ConnectionState }
-            };
-        }
-        
-
-        private void ConnectToMaster(object sender, EventArgs e)
-        {
-            Button button = (Button) sender;
-            string master = button.Text;
-            //CrossSettings.Current.AddOrUpdateValue("MasterIp", master);
-            Core.MasterConnected = true;
-            string[] splitted = master.Split(' ');
-            master = splitted[splitted.Length - 1];
-
-            Application.Current.Properties["MasterAdress"] = master;
-            try
-            {
-                connection = new Connection(master);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception);
-                throw;
-            }
-            Content = new StackLayout()
-            {
-                Children = { new Label
-                {
-                    Text = $"Connected to {master}",
-                    HorizontalTextAlignment = TextAlignment.Center,
-                    VerticalTextAlignment = TextAlignment.Center
-                } }
-            };
-            PostConnectionShow();
-        }
 
         private void PostConnectionShow()
         {
-            int sum = 0;
-            Thread findThread = new Thread(() =>
+            Thread findThread = new Thread(PostConnectionLoop);
+            findThread.Start();
+        }
+
+        private void PostConnectionLoop()
+        {
+            int sum = -1;
+            Thread.CurrentThread.Name = "Connection status thread";
+            while (!Core.XplaneConnection.TcpFinished)
             {
-                Thread.CurrentThread.Name = "Connection status thread";
-                while (!connection.forceStop)
+                int temp = Core.XplaneConnection.xCMD.Count + Core.XplaneConnection.xFIX.Count + Core.XplaneConnection.xNAVH.Count +
+                           Core.XplaneConnection.Airports.Count + Core.XplaneConnection.AcfMessages.Count +
+                           Core.XplaneConnection.FailMessages.Count;
+                if (sum == temp)
                 {
-                    int temp = connection.xCMD.Count + connection.xFIX.Count + connection.xNAVH.Count +
-                               connection.Airports.Count + connection.AcfMessages.Count +
-                               connection.FailMessages.Count;
-                    if (sum == temp)
+                    Task.Delay(300).Wait();
+                    continue;
+                }
+                sum = temp;
+                ConnectedTo = new Label()
                     {
-                        Task.Delay(300).Wait();
-                        continue;
-                    }
-                    sum = temp;
-                    Label ConnectedTo = new Label()
-                    {
-                        Text = $"Connected to {connection.MasterIp}"
+                        Text = $"Connected to {Core.XplaneConnection.MasterIp}"
                     };
-                    Label ConnectedFrom = new Label()
-                    {
-                        Text = $"Your IP is {connection.SlaveIp}"
-                    };
-                    Label Status = new Label()
+                    //Label ConnectedFrom = new Label()
+                    //{
+                    //    Text = $"Your IP is {Core.XplaneConnection.SlaveIp}"
+                    //};
+                    Status = new Label()
                     {
                         Text = $"Currently downloaded:\r\n" +
-                               $"   commands - {connection.xCMD.Count}\r\n" +
-                               $"   FIX points - {connection.xFIX.Count}\r\n" +
-                               $"   NAV points - {connection.xNAVH.Count}\r\n" +
-                               $"   airports - {connection.Airports.Count}\r\n" +
-                               $"   aircraft - {connection.AcfMessages.Count}\r\n" +
-                               $"   fails - {connection.FailMessages.Count}\r\n"
+                               $"   commands - {Core.XplaneConnection.xCMD.Count}\r\n" +
+                               $"   FIX points - {Core.XplaneConnection.xFIX.Count}\r\n" +
+                               $"   NAV points - {Core.XplaneConnection.xNAVH.Count}\r\n" +
+                               $"   airports - {Core.XplaneConnection.Airports.Count}\r\n" +
+                               $"   aircraft - {Core.XplaneConnection.AcfMessages.Count}\r\n" +
+                               $"   fails - {Core.XplaneConnection.FailMessages.Count}\r\n"
                     };
 
-                    Device.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    Content = new StackLayout()
                     {
-                        Content = new StackLayout()
-                        {
-                            Children = { ConnectedTo, ConnectedFrom, Status}
-                        };
-                    });
-                }
-            });
-            findThread.Start();
+                        Children = {Status }// ConnectedTo, 
+                    };
+                });
+            }
         }
     }
 }

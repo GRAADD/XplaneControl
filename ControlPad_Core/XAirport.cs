@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Packaging;
 //using Java.IO;
 using File = System.IO.File;
 
@@ -14,31 +15,31 @@ namespace XplaneControl
         public byte[] DataBytes;
         public List<Rw> Rws = new List<Rw>();
 
-        public XAirport(byte[] bytes)
+        public XAirport(byte[] InputBytes)
         {
-            int step = 0;
+            //int step = 0;
             try
             {
-                int start = 0;
-                List<byte> bytesTemp = new List<byte>();
+                int startIndex = 0; //с какого байта читаем данные
+                //List<byte> bytesTemp = new List<byte>();
 
                 int cutStart = 5;
-                for (int i = cutStart; i < bytes.Length; i++)
+                for (int i = cutStart; i < InputBytes.Length; i++)
                 {
-                    if (bytes[i] != 0)
+                    if (InputBytes[i] != 0)
                     {
                         cutStart = i;
                         break;
                     }
                 }
 
-                byte[] AptBytes = Cut(bytes, cutStart);
+                byte[] AptBytes = Cut(InputBytes, cutStart);
 
 
                 for (int j = 0; j < 4; j++) //заполняем код аэропорта
                 {
                     CodeByte[j] = AptBytes[j];
-                    if (DataEncoder.IsByteChar(AptBytes[j]))
+                    if (ByteOperations.IsByteChar(AptBytes[j]))
                         CodeString += ((Char)AptBytes[j]).ToString();
                     else
                     {
@@ -46,26 +47,40 @@ namespace XplaneControl
                     }
                 }
 
-                start = 8;
-                while (AptBytes[start] != 0)
-                {
-                    NameString += ((Char)AptBytes[start]).ToString();
-                    start++;
-
+                startIndex = 8;
+                while (AptBytes[startIndex] != 0)
+                {   //заполняем имя аэропорта
+                    NameString += ((Char)AptBytes[startIndex]).ToString();
+                    startIndex++;
                 }
-
+                
                 Rw rw = new Rw();
-                for (int i = start; i < AptBytes.Length; i++)
+                //if (CodeString == "USSS")
+                //{
+                //    string temp = "";
+                //    for (int i = 0; i < AptBytes.Length; i++)
+                //    {
+                //        if (ByteOperations.IsByteChar(AptBytes[i]))
+                //        {
+                //            temp += ((Char)AptBytes[i]).ToString();
+                //        }
+                //        //temp += (Char) AptBytes[i];
+                //    }
+                //}
+                for (int index = startIndex; index < AptBytes.Length; index++)
                 {
-                    if (DataEncoder.IsNumeric(AptBytes[i]) && DataEncoder.IsNumeric(AptBytes[i + 1]) && i < AptBytes.Length - 8)
+
+                    if (ByteOperations.IsNumeric(AptBytes[index]) && ByteOperations.IsNumeric(AptBytes[index + 1])
+                                                                  && index < AptBytes.Length - 8)//пропускаем данные, не являющиеся описанием полосы
                     {
                         if (DataBytes == null)
-                            DataBytes = Cut(AptBytes, start, i - 1);
+                            DataBytes = Cut(AptBytes, startIndex, index - 1);
                         else
                         {
                             rw.DataBytes = new List<byte>();
-                            rw.DataBytes.AddRange(Cut(AptBytes, start, i - 1));
+                            rw.DataBytes.AddRange(Cut(AptBytes, startIndex, index - 1));
                         }
+
                         if (!string.IsNullOrEmpty(rw.Rw1String))
                             Rws.Add(rw);
 
@@ -73,32 +88,34 @@ namespace XplaneControl
                         rw.Rw1Byte = new List<byte>();
                         for (int btIndex = 0; btIndex < 3; btIndex++)
                         {
-                            rw.Rw1Byte.Add(AptBytes[i]);
-                            if (DataEncoder.IsByteChar(AptBytes[i]))
-                                rw.Rw1String += ((Char)AptBytes[i]).ToString();
-                            i++;
+                            rw.Rw1Byte.Add(AptBytes[index]);
+                            if (ByteOperations.IsByteChar(AptBytes[index]))
+                                rw.Rw1String += ((Char)AptBytes[index]).ToString();
+                            index++;
                         }
-                        i++;
+
+                        index++;
+
                         rw.Rw2String = "";
                         rw.Rw2Byte = new List<byte>();
                         for (int btIndex = 0; btIndex < 3; btIndex++)
                         {
-                            rw.Rw2Byte.Add(AptBytes[i]);
-                            if (DataEncoder.IsByteChar(AptBytes[i]))
-                                rw.Rw2String += ((Char)AptBytes[i]).ToString();
-                            i++;
+                            rw.Rw2Byte.Add(AptBytes[index]);
+                            if (ByteOperations.IsByteChar(AptBytes[index]))
+                                rw.Rw2String += ((Char)AptBytes[index]).ToString();
+                            index++;
                         }
 
-                        start = i;
+                        startIndex = index;
                     }
                 }
 
                 if (DataBytes == null)
-                    DataBytes = Cut(AptBytes, start, AptBytes.Length - 1);
+                    DataBytes = Cut(AptBytes, startIndex, AptBytes.Length - 1);
                 else
                 {
                     rw.DataBytes = new List<byte>();
-                    rw.DataBytes.AddRange(Cut(AptBytes, start, AptBytes.Length - 1));
+                    rw.DataBytes.AddRange(Cut(AptBytes, startIndex, AptBytes.Length - 1));
                 }
                 if (!string.IsNullOrEmpty(rw.Rw1String))
                     Rws.Add(rw);
@@ -136,13 +153,13 @@ namespace XplaneControl
             bb = data[count];
             rw.Rw2Byte = new List<byte>();
             rw.Rw2String = "";
-            if (DataEncoder.IsCapitalLetter(bb))
+            if (ByteOperations.IsCapitalLetter(bb))
             {
                 if (count >= data.Length)
                     return new Rw();
                 count++;
                 bb = data[count];
-                while (bb != 0 && DataEncoder.IsNumeric(bb))
+                while (bb != 0 && ByteOperations.IsNumeric(bb))
                 {
                     rw.Rw2Byte.Add(bb);
                     rw.Rw2String += ((Char)bb).ToString();
@@ -169,14 +186,7 @@ namespace XplaneControl
             public string Rw2String;
             public List<byte> DataBytes;
         }
-
-        public void SaveData(string path_to_save = "")
-        {
-            if (string.IsNullOrEmpty(CodeString) || DataBytes==null)
-                return;
-            File.WriteAllBytes(Path.Combine(path_to_save, $"apt_{CodeString}.bin"),DataBytes);
-        }
-
+        
         private byte[] Cut(byte[] message, int start, int end = 0)
         {
             if (end == 0)

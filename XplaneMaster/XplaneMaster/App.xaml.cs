@@ -1,7 +1,7 @@
 ﻿using System;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-using XplaneControl;
+//using XplaneControl;
 using XplaneMaster.CommandPages;
 
 namespace XplaneMaster
@@ -12,9 +12,9 @@ namespace XplaneMaster
         {
             InitializeComponent();
 
-            MainPage = new MainPage();
+            //MainPage = new Page();
             //Core.CavokWeather();
-            //MainPage = new NavigationPage(new MainPage());
+            MainPage = new NavigationPage(new TitlePage());
         }
 
         private void SetStyles()

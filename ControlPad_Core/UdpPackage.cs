@@ -1,29 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using XplaneConnection_NF;
 
 namespace XplaneControl
 {
-    public class UdpMessage
+    public class UdpPackage : BytesPackage
     {
-        private string HeaderString = "";
-        private byte[] HeaderBytes;
         public UdpHeader Header;
-        public string MessageString = "";
-        public byte[] MessageBytes;
-        private ConnectionType Type;
-
-        public UdpMessage(byte[] bytes, ConnectionType Type)
+        public UdpPackage(byte[] bytes, ConnectionType Type) : base(bytes, Type)
         {
             try
             {
                 if (bytes.Length == 0)
                     return;
-                HeaderString = DataEncoder.GetHeaderString(bytes, Type);
+                HeaderString = ByteOperations.GetHeaderString(bytes, Type);
                 MakeHeader();
-                MessageBytes = new byte[bytes.Length - DataEncoder.headerUdpLength - 1];
+                MessageBytes = new byte[bytes.Length - ByteOperations.headerUdpLength - 1];
                 for (int i = 0; i < MessageBytes.Length; i++)
-                    MessageBytes[i] = bytes[i + DataEncoder.headerUdpLength + 1];
+                    MessageBytes[i] = bytes[i + ByteOperations.headerUdpLength + 1];
             }
             catch (Exception e)
             {
@@ -36,40 +29,27 @@ namespace XplaneControl
 
             if (string.IsNullOrEmpty(HeaderString) && HeaderBytes == null && MessageBytes != null)
             {
-                HeaderString = DataEncoder.GetHeaderString(MessageBytes, Type);
+                HeaderString = ByteOperations.GetHeaderString(MessageBytes, Type);
                 Header = Make(HeaderString);
                 return;
             }
 
             if (!string.IsNullOrEmpty(HeaderString) && HeaderBytes == null)
             {
-                HeaderBytes = DataEncoder.GetHeaderBytes(HeaderString, Type);
+                HeaderBytes = ByteOperations.GetHeaderBytes(HeaderString, Type);
                 Header = Make(HeaderString);
                 return;
             }
 
             if (string.IsNullOrEmpty(HeaderString) && HeaderBytes.Length != 0)
             {
-                HeaderString = DataEncoder.GetHeaderString(HeaderBytes, Type);
+                HeaderString = ByteOperations.GetHeaderString(HeaderBytes, Type);
                 Header = Make(HeaderString);
             }
 
         }
 
-        public byte[] FullBytes()
-        {
-            List<byte> bytes = new List<byte>();
-            bytes.AddRange(HeaderBytes);
-            bytes.AddRange(MessageBytes);
-            return bytes.ToArray();
-        }
-
-        public string FullString()
-        {
-            return HeaderString + " " + MessageString;
-        }
-
-        private static UdpHeader Make(string header)
+        internal static UdpHeader Make(string header)
         {
             switch (header)
             {
@@ -93,6 +73,5 @@ namespace XplaneControl
                     return UdpHeader.Unknow;
             }
         }
-
     }
 }

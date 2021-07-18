@@ -26,9 +26,9 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
+    <OutputPath>D:\VisualStudio\XplaneMaster\Android\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -43,12 +43,17 @@
     <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
+    <AndroidEnableSGenConcurrent>false</AndroidEnableSGenConcurrent>
+    <AndroidSupportedAbis />
+    <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AndroidDexTool>dx</AndroidDexTool>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>D:\VisualStudio\XplaneMaster\Android\bin\Release\</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
@@ -67,6 +72,8 @@
     <AndroidSigningStorePass>Vfrcbv5020905</AndroidSigningStorePass>
     <AndroidSigningKeyAlias>GRAADD</AndroidSigningKeyAlias>
     <AndroidSigningKeyPass>Vfrcbv5020905</AndroidSigningKeyPass>
+    <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <AndroidDexTool>dx</AndroidDexTool>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CustomWebViewRenderer.cs" />
@@ -677,7 +684,7 @@
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties XamarinHotReloadDebuggerTimeoutExceptionXplaneMasterAndroidHideInfoBar="True" TriggeredFromHotReload="False" />
+      <UserProperties XamarinHotReloadDebuggerTimeoutExceptionXplaneMasterAndroidHideInfoBar="True" TriggeredFromHotReload="False" XamarinHotReloadWrongLinkerErrorInfoBarXplaneMasterAndroidHideInfoBar="True" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

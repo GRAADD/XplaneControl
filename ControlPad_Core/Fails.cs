@@ -54,7 +54,7 @@ namespace XplaneControl
             FailsList = temp;
         }
 
-        public static Task Add(UdpMessage message)
+        public static Task Add(BytesPackage message)
         {
             string[] splitted = message.MessageString.Split(' ');
             if (splitted.Length > 6)

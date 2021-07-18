@@ -791,8 +791,7 @@ namespace ControlPadTest
                 if (Cloud3Base.Value + 2000 > Cloud3Top.Value)
                     if (Cloud3Base.Value + 2000 < Cloud3Base.Maximum)
                         Cloud3Top.Value = Cloud3Base.Value + 2000;
-                //todo Сломано, надо починить
-
+                
                 Cloud1BaseLabel.Text = stats.GetStringFromValue(Cloud1Base.Value, Atmosphere.Type.TCloudsLayer1Base);
                 Cloud2BaseLabel.Text = stats.GetStringFromValue(Cloud2Base.Value, Atmosphere.Type.TCloudsLayer2Base);
                 Cloud3BaseLabel.Text = stats.GetStringFromValue(Cloud3Base.Value, Atmosphere.Type.TCloudsLayer3Base);
@@ -913,7 +912,7 @@ namespace ControlPadTest
 
             AirportControls.Controls.Clear();
 
-            XAirport airport = DataEncoder.GetAirport(text);
+            XAirport airport = ByteOperations.GetAirport(text);
             if (string.IsNullOrEmpty(airport.CodeString))
                 return Task.CompletedTask;
 
@@ -1035,7 +1034,7 @@ namespace ControlPadTest
                 };
                 stand1Button.Click += (object sender, EventArgs e) =>
                 {
-                    CmdEncoder CmdEncoder = new CmdEncoder();
+                    //CmdEncoder CmdEncoder = new CmdEncoder();
                     Button button = (Button)sender;
                     string code = button.Tag.ToString();
                     string standNumber = $"{button.Text.Split(' ')[2]}_Stand";
@@ -1084,7 +1083,7 @@ namespace ControlPadTest
 
         private void RWButton_click(object sender, EventArgs e)
         {
-            CmdEncoder CmdEncoder = new CmdEncoder();
+            //CmdEncoder CmdEncoder = new CmdEncoder();
             Button button = (Button)sender;
             string code = button.Tag.ToString();
             string place = button.Text;
@@ -1093,7 +1092,7 @@ namespace ControlPadTest
 
         private void SetParking(object sender, EventArgs e)
         {
-            CmdEncoder CmdEncoder = new CmdEncoder();
+            //CmdEncoder CmdEncoder = new CmdEncoder();
             Button button = (Button)sender;
             string code = button.Tag.ToString();
             string standNumber = "1_Stand";
@@ -1117,7 +1116,7 @@ namespace ControlPadTest
             try
             {
                 _connection = new Connection(MasterIpTxtBx.Text);
-                DataEncoder.connection = _connection;
+                //ByteOperations.connection = _connection;
                 SendTCP.Enabled = true;
                 SendUDP.Enabled = true;
                 loopThread = new Thread(FormUpdateLoop);

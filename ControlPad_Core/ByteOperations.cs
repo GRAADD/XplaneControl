@@ -9,13 +9,16 @@ using XplaneConnection_NF;
 
 namespace XplaneControl
 {
-    public static class DataEncoder
+    public static class ByteOperations
     {
         public static Connection connection;
         public static int headerUdpLength = 4;
         public static int headerTcpLength = 5;
         public static int headerCommandLength = 4;
 
+
+        #region Get operations
+        
         public static int GetLength(ConnectionType type)
         {
             switch (type)
@@ -72,8 +75,6 @@ namespace XplaneControl
             }
             catch (Exception e)
             {
-                Logger.WriteLog(output, ErrorLevel.Error);
-                Logger.WriteLog(e, ErrorLevel.Error);
                 return "";
             }
             return output;
@@ -114,6 +115,7 @@ namespace XplaneControl
                 output[i] = 0;
             return output;
         }
+
         public static byte[] GetHeaderBytes(string message, ConnectionType connectionType)
         {
             int hdrLength = GetHeaderLength(connectionType);
@@ -127,6 +129,10 @@ namespace XplaneControl
             return output;
         }
 
+        #endregion
+
+        #region Check operations
+        
         public static bool IsByteChar(byte bb, bool space = false)
         {
             if (IsCapitalLetter(bb))
@@ -154,6 +160,7 @@ namespace XplaneControl
             }
             else return false;
         }
+
         public static bool IsLowercaseLetter(byte bb)
         {
             if (bb >= 97 && bb <= 122)
@@ -162,6 +169,7 @@ namespace XplaneControl
             }
             else return false;
         }
+
         public static bool IsNumeric(byte bb)
         {
             if (bb >= 48 && bb <= 57)
@@ -197,6 +205,9 @@ namespace XplaneControl
             else
                 return connection.UdpHeaders.Contains(header);
         }
+
+        #endregion
+
         public static string FancyHex(string input, string split)
         {
             string output = "";
@@ -246,7 +257,43 @@ namespace XplaneControl
         }
 
         //==================================================================================================================================
-
+        #region Tcp encoder conveyer
+        
+        public static void EncoderConveyer()
+        {
+            while (!connection.TcpFinished)
+            {
+                try
+                {
+                    if (connection.BytesList.Count == 0)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+                    //расшифровываем первое вхождение
+                    if (connection.BytesList[0] == null)
+                    {
+                        connection.BytesList.RemoveAt(0);
+                        continue;
+                    }
+                    byte[] bytes = EncodeBytes(connection.BytesList[0]).ToArray();
+                    if (bytes.Length != connection.BytesList[0].Length)
+                    {
+                        //убираем его из конвеера, а остаток подставляем к следующему
+                        connection.BytesList.RemoveAt(0);
+                    }
+                    List<byte> newList = new List<byte>();
+                    byte[] oldBytes = connection.BytesList[0];
+                    newList.AddRange(bytes);
+                    newList.AddRange(oldBytes);
+                    connection.BytesList[0] = newList.ToArray();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+        }
         
         public static List<byte> EncodeBytes(byte[] bytes)
         {
@@ -290,43 +337,7 @@ namespace XplaneControl
 
             return output;
         }
-
-        public static void EncoderConveyer()
-        {
-            while (!connection.TcpFinished)
-            {
-                try
-                {
-                    if (connection.BytesList.Count == 0)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-                    //расшифровываем первое вхождение
-                    if (connection.BytesList[0] == null)
-                    {
-                        connection.BytesList.RemoveAt(0);
-                        continue;
-                    }
-                    byte[] bytes = EncodeBytes(connection.BytesList[0]).ToArray();
-                    if (bytes.Length != connection.BytesList[0].Length)
-                    {
-                        //убираем его из конвеера, а остаток подставляем к следующему
-                        connection.BytesList.RemoveAt(0);
-                    }
-                    List<byte> newList = new List<byte>();
-                    byte[] oldBytes = connection.BytesList[0];
-                    newList.AddRange(bytes);
-                    newList.AddRange(oldBytes);
-                    connection.BytesList[0] = newList.ToArray();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }
-        }
-
+        
         private static async void StartWorker(byte[] bytes)
         {
             await MessageWorker(bytes);
@@ -369,7 +380,7 @@ namespace XplaneControl
                     connection.RadStarted = true;
                     return Task.CompletedTask;
                 default:
-                    Logger.WriteLog($"Unknow header ({header} {TranslateTcp(message)})", ErrorLevel.Info);
+                    //Logger.WriteLog($"Unknow header ({header} {TranslateTcp(message)})", ErrorLevel.Info);
                     return Task.CompletedTask;
             }
 
@@ -558,8 +569,12 @@ namespace XplaneControl
             return outBytes;
         }
 
+        #endregion
+
         //==================================================================================================================================
 
+        #region Udp operations
+        
        /// <summary>
         /// Обрабатывает сообщение, и распределяет содержимое
         /// </summary>
@@ -573,7 +588,7 @@ namespace XplaneControl
             if (data.Length == 0)
                 return Task.CompletedTask;
             //BigData(ref data);
-            UdpMessage message = TranslateUdpMessage(data);
+            UdpPackage message = TranslateUdpMessage(data);
             SortMessages(message);
             return Task.CompletedTask;
         }
@@ -583,47 +598,47 @@ namespace XplaneControl
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        private static UdpMessage TranslateUdpMessage(byte[] bytes)
+        private static UdpPackage TranslateUdpMessage(byte[] bytes)
         {
             try
             {
                 if (bytes.Length == 0)
-                    return new UdpMessage(new byte[0], ConnectionType.UDP);
+                    return new UdpPackage(new byte[0], ConnectionType.UDP);
                 
                 if (bytes.Length <= headerUdpLength)
-                    return new UdpMessage(new byte[0], ConnectionType.UDP);
+                    return new UdpPackage(new byte[0], ConnectionType.UDP);
 
-                UdpMessage udpMessage = new UdpMessage(bytes, ConnectionType.UDP);
+                UdpPackage package = new UdpPackage(bytes, ConnectionType.UDP);
 
                 byte[] byteValue = new byte[4];
                 int bbi = 1;//counter for integers
 
-                switch (udpMessage.Header)
+                switch (package.Header)
                 {
                     case UdpHeader.Aircraft:
-                        foreach (var bt in udpMessage.MessageBytes)
+                        foreach (var bt in package.MessageBytes)
                             if (IsByteChar(bt, true))
-                                udpMessage.MessageString += ((Char)bt).ToString();
+                                package.MessageString += ((Char)bt).ToString();
                             else
-                                udpMessage.MessageString += $"~{bt.ToString()}~";
+                                package.MessageString += $"~{bt.ToString()}~";
                         break;
                     case UdpHeader.CurrentAircraft:
-                        foreach (var bt in udpMessage.MessageBytes)
+                        foreach (var bt in package.MessageBytes)
                             if (IsByteChar(bt, true))
-                                udpMessage.MessageString += ((Char)bt).ToString();
+                                package.MessageString += ((Char)bt).ToString();
                         break;
                     case UdpHeader.Fail:
-                        foreach (var bt in udpMessage.MessageBytes)
-                            if (udpMessage.MessageString != "" && IsByteChar(bt, true))
-                                udpMessage.MessageString += ((Char) bt).ToString();
+                        foreach (var bt in package.MessageBytes)
+                            if (package.MessageString != "" && IsByteChar(bt, true))
+                                package.MessageString += ((Char) bt).ToString();
                             else
                             {
                                 byteValue[bbi - 1] = bt;
                                 if (bbi == 4)
                                 {
                                     bbi = 1;
-                                    udpMessage.MessageString += BitConverter.ToInt32(byteValue, 0).ToString();
-                                    udpMessage.MessageString += " ";
+                                    package.MessageString += BitConverter.ToInt32(byteValue, 0).ToString();
+                                    package.MessageString += " ";
                                 }
                                 else
                                     bbi++;
@@ -632,14 +647,14 @@ namespace XplaneControl
                     //case UdpHeader.Dim:
                     //    break;
                     case UdpHeader.Weight:
-                        foreach (var bt in udpMessage.MessageBytes)
+                        foreach (var bt in package.MessageBytes)
                         {
                             byteValue[bbi - 1] = bt;
                             if (bbi == 4)
                             {
                                 bbi = 1;
-                                udpMessage.MessageString += BitConverter.ToInt32(byteValue, 0).ToString();
-                                udpMessage.MessageString += " ";
+                                package.MessageString += BitConverter.ToInt32(byteValue, 0).ToString();
+                                package.MessageString += " ";
                             }
                             else
                                 bbi++;
@@ -647,9 +662,9 @@ namespace XplaneControl
                         break;
                     case UdpHeader.Radar:
                         byteValue = new byte[8];
-                        foreach (var bt in udpMessage.MessageBytes)
-                            if (udpMessage.MessageString != "" && IsByteChar(bt))
-                                udpMessage.MessageString += ((Char)bt).ToString();
+                        foreach (var bt in package.MessageBytes)
+                            if (package.MessageString != "" && IsByteChar(bt))
+                                package.MessageString += ((Char)bt).ToString();
                             else
                             {
                                 byteValue[bbi - 1] = bt;
@@ -657,23 +672,23 @@ namespace XplaneControl
                                 {
                                     bbi = 1;
                                     byteValue.Reverse();
-                                    udpMessage.MessageString += BitConverter.ToInt64(byteValue, 0).ToString();
-                                    udpMessage.MessageString += " ";
+                                    package.MessageString += BitConverter.ToInt64(byteValue, 0).ToString();
+                                    package.MessageString += " ";
                                 }
                                 else
                                     bbi++;
                             }
                         break;
                     case UdpHeader.Location:
-                        Position.GetData(udpMessage.MessageBytes);
+                        Position.GetData(package.MessageBytes);
                         break;
                     default:
-                        foreach (var bt in udpMessage.MessageBytes)
+                        foreach (var bt in package.MessageBytes)
                         {
                             if (IsByteChar(bt))
                             {
                                 bbi = 1;
-                                udpMessage.MessageString += ((Char)bt).ToString();
+                                package.MessageString += ((Char)bt).ToString();
                             }
                             else
                             {
@@ -682,8 +697,8 @@ namespace XplaneControl
                                 {
                                     bbi = 1;
                                     byteValue.Reverse();
-                                    udpMessage.MessageString += BitConverter.ToInt32(byteValue, 0).ToString();
-                                    udpMessage.MessageString += " ";
+                                    package.MessageString += BitConverter.ToInt32(byteValue, 0).ToString();
+                                    package.MessageString += " ";
                                 }
                                 else
                                     bbi++;
@@ -691,12 +706,12 @@ namespace XplaneControl
                         }
                         break;
                 }
-                return udpMessage;
+                return package;
             }
             catch (Exception e)
             {
                 Logger.WriteLog(e, ErrorLevel.Error);
-                return new UdpMessage(new byte[0], ConnectionType.UDP);
+                return new UdpPackage(new byte[0], ConnectionType.UDP);
             }
         }
 
@@ -704,33 +719,33 @@ namespace XplaneControl
         /// <summary>
         /// Сортировка сообщения по местам хранения
         /// </summary>
-        /// <param name="udpMessage"></param>
-        private static async void SortMessages(UdpMessage udpMessage)
+        /// <param name="bytesPackage"></param>
+        private static async void SortMessages(UdpPackage bytesPackage)
         {
-            switch (udpMessage.Header)
+            switch (bytesPackage.Header)
             {
                 case UdpHeader.Aircraft:
-                    connection.AddMessageToList(udpMessage, connection.AcfMessages);
+                    connection.AddMessageToList(bytesPackage, connection.AcfMessages);
                     break;
                 case UdpHeader.CurrentAircraft:
-                    connection.xAcf = udpMessage.MessageString;
+                    connection.xAcf = bytesPackage.MessageString;
                     break;
                 case UdpHeader.Fail:
-                    connection.AddMessageToList(udpMessage, connection.FailMessages);
-                    await Fails.Add(udpMessage);
+                    connection.AddMessageToList(bytesPackage, connection.FailMessages);
+                    await Fails.Add(bytesPackage);
                     //await FailAdd();
                     break;
                 case UdpHeader.Dim:
-                    connection.xDim = udpMessage.MessageString;
+                    connection.xDim = bytesPackage.MessageString;
                     break;
                 case UdpHeader.Weight:
-                    connection.xWgt = udpMessage.MessageString;
+                    connection.xWgt = bytesPackage.MessageString;
                     break;
                 case UdpHeader.Radar:
-                    connection.AddMessageToList(udpMessage, connection.RadMessages);
+                    connection.AddMessageToList(bytesPackage, connection.RadMessages);
                     break;
                 case UdpHeader.Location:
-                    connection.xLoc = udpMessage.MessageBytes;
+                    connection.xLoc = bytesPackage.MessageBytes;
                     break;
                 case UdpHeader.Con:
                     break;
@@ -740,6 +755,8 @@ namespace XplaneControl
             }
         }
 
+
+        #endregion
         private static byte[] ReverseBytes(byte[] inputBytes)
         {
             byte[] outputBytes = new byte[inputBytes.Length];
@@ -753,9 +770,8 @@ namespace XplaneControl
 
         //=================================================================================================================================================
 
-        #region Airport
+        #region Airport list operations
 
-        
         //public static List<XAirport> Airports = new List<XAirport>();
         public static XAirport GetAirport(string name)
         {

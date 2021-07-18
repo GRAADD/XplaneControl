@@ -6,7 +6,7 @@
              xmlns:mypages="clr-namespace:XplaneMaster;assembly=XplaneMaster"
              xmlns:mainPage="clr-namespace:XplaneMaster.MainPage;assembly=XplaneMaster"
              mc:Ignorable="d"
-             x:Class="XplaneMaster.MainPage">
+             x:Class="XplaneMaster.TitlePage">
 
     <TabbedPage.Children>
         <mypages:XplaneCommand Title="XPlane"/>

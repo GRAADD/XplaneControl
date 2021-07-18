@@ -16,6 +16,7 @@ namespace XplaneMaster
         public static Thread UdpThread;
         public static Thread TcpThread;
         public static bool MasterConnected = false;
+        public static Connection XplaneConnection;
         public static Style SliderStyle = new Style(typeof(Slider))
         {
             Setters =
@@ -213,7 +214,7 @@ namespace XplaneMaster
         }
         public static void SendWeather()
         {
-            ConnectionUdp.SendMessage(CommandEncoder.MakeWeatherBytes(Current));
+            XplaneConnection.SendMessage(CmdEncoder.MakeWeatherBytes(Current));
         }
 
     }

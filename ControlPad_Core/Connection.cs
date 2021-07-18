@@ -34,7 +34,7 @@ namespace XplaneControl
         private int _tcpPacketLength = 256;//64294
         public string responseTCP;
         public string messageTCP = "";
-        public List<string> TerminaList = new List<string>();
+        //public List<string> TerminaList = new List<string>();
         
 
         internal List<string> TcpHeaders = new List<string>() { "xCMD8", "xRAD", "xNAVH", "xAPTP", "xFIX", "xAPTl", "xAPT" };//"xLOC", "xFAL", "xDIM", "xACF", "xFIX", 
@@ -79,9 +79,9 @@ namespace XplaneControl
         public List<byte[]> MessagesUdpAll = new List<byte[]>();
         public List<byte> CommandMessages = new List<byte>();
 
-        public List<UdpMessage> FailMessages = new List<UdpMessage>();
-        public List<UdpMessage> AcfMessages = new List<UdpMessage>();
-        public List<UdpMessage> RadMessages = new List<UdpMessage>();
+        public List<BytesPackage> FailMessages = new List<BytesPackage>();
+        public List<BytesPackage> AcfMessages = new List<BytesPackage>();
+        public List<BytesPackage> RadMessages = new List<BytesPackage>();
         public byte[] xLoc;
         public string xDim = "";
         public string xWgt = "";
@@ -91,7 +91,8 @@ namespace XplaneControl
         public Connection(string master)
         {
             MasterIp = master;
-            //DataEncoder.connection = this;
+            ByteOperations.connection = this;
+            //ByteOperations.connection = this;
             TCPConnectionThread = new Thread(TcpConveyer);
             TCPConnectionThread.Start();
             UDPConnectionThread = new Thread(UdpLoop);
@@ -110,7 +111,7 @@ namespace XplaneControl
         
         public void TcpConveyer()
         {
-            Thread encoderThread = new Thread(DataEncoder.EncoderConveyer);
+            Thread encoderThread = new Thread(ByteOperations.EncoderConveyer);
             encoderThread.Start();
 
             //byte[] conMessage = CmdEncoder.encodeCommandToBytes("CON1", ConnectionType.TCP);
@@ -125,6 +126,7 @@ namespace XplaneControl
                     if (streamTCP.DataAvailable)
                     {
                         streamTCP.Read(data, 0, data.Length);
+                        //ByteOperations.AddMessage(data);
                         BytesList.Add(data);
                     }
                     else
@@ -135,9 +137,11 @@ namespace XplaneControl
             }
             catch (SocketException se)
             {
+                Console.WriteLine(se);
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
             }
             
             TcpFinished = true;
@@ -167,7 +171,7 @@ namespace XplaneControl
                     if (input.Length > 0)
                         connected = true;
                 }
-                await DataEncoder.UdpDataToMessage(input);
+                await ByteOperations.UdpDataToMessage(input);
 
 
                 while (Thread.CurrentThread.IsAlive && !forceStop)
@@ -175,7 +179,7 @@ namespace XplaneControl
                     byte[] data = udp.Receive(ref xplaneEndPoint);
                     if (data.Length > 0)
                     {
-                        await DataEncoder.UdpDataToMessage(data);
+                        await ByteOperations.UdpDataToMessage(data);
                         //test
                     }
 
@@ -203,49 +207,48 @@ namespace XplaneControl
         #endregion
         
         //=============================================================================================================================
-        public void MessagesAllAdd(byte[] data, ConnectionType connectionType)
-        {
-            if (data == null) throw new ArgumentNullException(nameof(data));
-            if (!Enum.IsDefined(typeof(ConnectionType), connectionType))
-                throw new InvalidEnumArgumentException(nameof(connectionType), (int) connectionType,
-                    typeof(ConnectionType));
-        }
+        //public void MessagesAllAdd(byte[] data, ConnectionType connectionType)
+        //{
+        //    if (data == null) throw new ArgumentNullException(nameof(data));
+        //    if (!Enum.IsDefined(typeof(ConnectionType), connectionType))
+        //        throw new InvalidEnumArgumentException(nameof(connectionType), (int) connectionType,
+        //            typeof(ConnectionType));
+        //}
 
-        private void AddToList(List<string> list, string str)
-        {
-            if (!list.Contains(str))
-                list.Add(str);
-        }
+        //private void AddToList(List<string> list, string str)
+        //{
+        //    if (!list.Contains(str))
+        //        list.Add(str);
+        //}
 
-        public UdpHeader getEnum(string header)
-        {
-            switch (header)
-            {
-                case "xACF":
-                    return UdpHeader.Aircraft;
-                case "ACFN":
-                    return UdpHeader.CurrentAircraft;
-                case "xFAL":
-                    return UdpHeader.Fail;
-                case "xDIM":
-                    return UdpHeader.Dim;
-                case "xWGT":
-                    return UdpHeader.Weight;
-                case "xRAD":
-                    return UdpHeader.Radar;
-                case "xLOC":
-                    return UdpHeader.Location;
-                case "xCON":
-                    return UdpHeader.Con;
-                default:
-                    return UdpHeader.Radar;
-            }
-        }
+        //public UdpHeader getEnum(string header)
+        //{
+        //    switch (header)
+        //    {
+        //        case "xACF":
+        //            return UdpHeader.Aircraft;
+        //        case "ACFN":
+        //            return UdpHeader.CurrentAircraft;
+        //        case "xFAL":
+        //            return UdpHeader.Fail;
+        //        case "xDIM":
+        //            return UdpHeader.Dim;
+        //        case "xWGT":
+        //            return UdpHeader.Weight;
+        //        case "xRAD":
+        //            return UdpHeader.Radar;
+        //        case "xLOC":
+        //            return UdpHeader.Location;
+        //        case "xCON":
+        //            return UdpHeader.Con;
+        //        default:
+        //            return UdpHeader.Radar;
+        //    }
+        //}
 
 
         //=============================================================================================================================
-
-
+        
         private void Connect()
         {
             xPlaneTCP = new TcpClient(MasterIp, masterPortOut);
@@ -258,20 +261,20 @@ namespace XplaneControl
 
         //====================================================================================================================================================
         
-        public void AddMessageToList(UdpMessage udpMessage, List<UdpMessage> messages)
+        public void AddMessageToList(BytesPackage bytesPackage, List<BytesPackage> messages)
         {
             bool unic = true;
             foreach (var message in messages)
-                if (udpMessage.MessageString == message.MessageString)
+                if (bytesPackage.MessageString == message.MessageString)
                     unic = false;
 
             if (unic)
-                messages.Add(udpMessage);
+                messages.Add(bytesPackage);
         }
 
         public void SendMessage(string data)
         {
-            string header = DataEncoder.GetHeaderString(data, ConnectionType.Command);
+            string header = ByteOperations.GetHeaderString(data, ConnectionType.Command);
 
             string message = data.Substring(header.Length);
             switch (header)
@@ -295,7 +298,7 @@ namespace XplaneControl
             CommandMessages.AddRange(data);
         }
         
-        private int FailTemp = 0;
+        //private int FailTemp = 0;
     }
 
     class OldShit
@@ -319,7 +322,7 @@ namespace XplaneControl
         //            {
         //                streamTCP.Read(data, 0, data.Length);
         //                bytes.AddRange(data);
-        //                bytes = DataEncoder.EncodeBytes(bytes.ToArray());
+        //                bytes = ByteOperations.EncodeBytes(bytes.ToArray());
         //                //TcpEncoder.TcpDataToMessage(data.ToArray(), ref responseTCP);
         //            } 
 

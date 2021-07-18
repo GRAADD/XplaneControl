@@ -19,6 +19,8 @@ namespace XplaneMaster.CommandPages
         Button clearButton = new Button();
         Entry airportEntry = new Entry();
         StackLayout dynamicStack = new StackLayout();
+        private MySlider standSlider;
+        private Label standLabel;
         private string icaocode = "";
 
         public Airports()
@@ -79,7 +81,7 @@ namespace XplaneMaster.CommandPages
 
             try
             {
-                List<XAirport> apts = ConnectionTcp.GetAirports(airportEntry.Text);
+                List<XAirport> apts = ByteOperations.GetAirports(airportEntry.Text);
                 if (apts.Count > 10)
                     apts = apts.GetRange(0, 10);
                 foreach (var apt in apts)
@@ -118,7 +120,7 @@ namespace XplaneMaster.CommandPages
             icaocode = airport;
             if (!string.IsNullOrEmpty(airport))
             {
-                XAirport apt = ConnectionTcp.GetAirport(airport);
+                XAirport apt = ByteOperations.GetAirport(airport);
                 if (!string.IsNullOrEmpty(apt.CodeString))
                 {
                     icaocode = apt.CodeString;
@@ -134,12 +136,46 @@ namespace XplaneMaster.CommandPages
                         }
                     }
 
+                    Grid standGrid = new Grid
+                    {
+                        RowDefinitions =
+                        {
+                            new RowDefinition { Height = 60 }
+                        },
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                            new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
+                            new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                        },
+                        ColumnSpacing = 5
+                    };
+                    
+                    standSlider = new MySlider
+                    {
+                        Maximum = 40,
+                        Value = 0,
+                        Minimum = 0,
+                        Step = 1
+                    };
+                    standSlider.ValueChanged += (object sender, ValueChangedEventArgs e) =>
+                    {
+                        standLabel.Text = Math.Round(standSlider.Value).ToString();
+                    };
                     Button setStand = new Button()
                     {
                         Text = "Stand"
                     };
-                    setStand.Clicked += SetAptPos_Clicked;
-                    dynamicStack.Children.Add(setStand);
+                    setStand.Clicked += SetStand_Clicked;
+                    standLabel = new Label
+                    {
+                        Text = "0"
+                    };
+                    
+                    standGrid.Children.Add(standLabel, 0, 0);
+                    standGrid.Children.Add(standSlider, 1, 0);
+                    standGrid.Children.Add(setStand, 2, 0);
+                    dynamicStack.Children.Add(standGrid);
                 }
             }
 
@@ -162,7 +198,7 @@ namespace XplaneMaster.CommandPages
             //NavigationPage navPage = new NavigationPage(this);
             Navigation.PushModalAsync(new ChartView(btn.Text));
             //await navPage.PushAsync(new ChartView(url));
-            //MainPage = new NavigationPage(new MainPage());
+            //TitlePage = new NavigationPage(new TitlePage());
             //await Navigation.PushAsync(page);
         }
 
@@ -195,20 +231,28 @@ namespace XplaneMaster.CommandPages
 
         }
 
-
+        
         private void SetAptPos_Clicked(object sender, EventArgs e)
         {
-
-            CommandEncoder commandEncoder = new CommandEncoder();
+            //CommandEncoder commandEncoder = new CommandEncoder();
             Button button = (Button)sender;
             string code = icaocode;
             string place = button.Text.Split(' ')[0];
-            ConnectionUdp.SendMessage(commandEncoder.MakeAirportBytes(code, place));
+            //string standNumber = $"{Math.Round(standSlider.Value)}_Stand";
+            Core.XplaneConnection.SendMessage(CmdEncoder.MoveToAirportBytes(code, place));
+        }
+        private void SetStand_Clicked(object sender, EventArgs e)
+        {
+            //CommandEncoder commandEncoder = new CommandEncoder();
+            Button button = (Button)sender;
+            string code = icaocode;
+            //string place = button.Text.Split(' ')[0];
+            string standNumber = $"{Math.Round(standSlider.Value)}_Stand";
+            Core.XplaneConnection.SendMessage(CmdEncoder.MoveToAirportBytes(code, standNumber));
         }
 
         private Grid MakeGridForRw(string rw)
         {
-
             Button btn_10nm = new Button()
             {
                 Text = $"10nm {rw}"

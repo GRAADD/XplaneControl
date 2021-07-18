@@ -79,14 +79,14 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\XplaneMaster\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="GMap.NET.Core, Version=2.0.1.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
-      <HintPath>..\XplaneMaster\packages\GMap.NET.Core.2.0.1\lib\net40\GMap.NET.Core.dll</HintPath>
+    <Reference Include="GMap.NET.Core, Version=2.0.2.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
+      <HintPath>..\packages\GMap.NET.Core.2.0.2\lib\net46\GMap.NET.Core.dll</HintPath>
     </Reference>
-    <Reference Include="GMap.NET.WindowsForms, Version=2.0.1.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
-      <HintPath>..\XplaneMaster\packages\GMap.NET.WinForms.2.0.1\lib\net40\GMap.NET.WindowsForms.dll</HintPath>
+    <Reference Include="GMap.NET.WindowsForms, Version=2.0.2.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
+      <HintPath>..\packages\GMap.NET.WinForms.2.0.2\lib\net46\GMap.NET.WindowsForms.dll</HintPath>
     </Reference>
-    <Reference Include="GMap.NET.WindowsPresentation, Version=2.0.1.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
-      <HintPath>..\XplaneMaster\packages\GMap.NET.WinPresentation.2.0.1\lib\net40\GMap.NET.WindowsPresentation.dll</HintPath>
+    <Reference Include="GMap.NET.WindowsPresentation, Version=2.0.2.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
+      <HintPath>..\packages\GMap.NET.WinPresentation.2.0.2\lib\net46\GMap.NET.WindowsPresentation.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\XplaneMaster\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -94,6 +94,9 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SqlClient, Version=4.6.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SqlClient.4.8.2\lib\net461\System.Data.SqlClient.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data.SQLite, Version=1.0.113.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
       <HintPath>..\XplaneMaster\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.113.3\lib\net46\System.Data.SQLite.dll</HintPath>
     </Reference>
@@ -102,6 +105,9 @@
     </Reference>
     <Reference Include="System.Data.SQLite.Linq, Version=1.0.113.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
       <HintPath>..\XplaneMaster\packages\System.Data.SQLite.Linq.1.0.113.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />

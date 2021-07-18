@@ -18,13 +18,11 @@ namespace XplaneMaster
     // by visiting https://aka.ms/xamarinforms-previewer
     [DesignTimeVisible(true)]
 
-    public partial class MainPage : TabbedPage
+    public partial class TitlePage : TabbedPage
     {
-        public MainPage()
+        public TitlePage()
         {
             InitializeComponent();
-
-
         }
     }
 

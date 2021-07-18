@@ -54,7 +54,7 @@ namespace XplaneMaster.CommandPages
             DownloadFile();
             //webClient.DownloadFile(url, path);
 
-            //NavigationPage navPage = (NavigationPage)Application.Current.MainPage;
+            //NavigationPage navPage = (NavigationPage)Application.Current.TitlePage;
 
         }
 

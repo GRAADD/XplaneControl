@@ -47,7 +47,7 @@ namespace XplaneControl
         public float Visibility;
         public float Rain;
         public float Storm;
-        public enum RwStat : int
+        public enum RwStat
         {
             dry,
             damp,
@@ -90,54 +90,79 @@ namespace XplaneControl
                 int cat = 0;
                 switch (CategoryClouds)
                 {
-                    case Atmosphere.CloudsLayer.CloudsCat.ClearClouds:
+                    case CloudsCat.ClearClouds:
                         cat = 0;
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.CirrusClouds:
+                    case CloudsCat.CirrusClouds:
                         cat = 1;
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.FewClouds:
+                    case CloudsCat.FewClouds:
                         cat = 2;
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.ScatteredClouds:
+                    case CloudsCat.ScatteredClouds:
                         cat = 3;
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.BrokenClouds:
+                    case CloudsCat.BrokenClouds:
                         cat = 4;
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.OvercastClouds:
+                    case CloudsCat.OvercastClouds:
                         cat = 5;
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.StratusClouds:
+                    case CloudsCat.StratusClouds:
                         cat = 6;
                         break;
                 }
                 return cat;
             }
+            
+            public byte[] GetCatByte()
+            {
+                int cat = 0;
+                
+                switch (CategoryClouds)
+                {
+                    case CloudsCat.ClearClouds:
+                        return new byte[]{0, 0, 0, 0};
+                    case CloudsCat.CirrusClouds:
+                        return new byte[]{1, 0, 0, 0};
+                    case CloudsCat.FewClouds:
+                        return new byte[]{2, 0, 0, 0};
+                    case CloudsCat.ScatteredClouds:
+                        return new byte[]{3, 0, 0, 0};
+                    case CloudsCat.BrokenClouds:
+                        return new byte[]{4, 0, 0, 0};
+                    case CloudsCat.OvercastClouds:
+                        return new byte[]{5, 0, 0, 0};
+                    case CloudsCat.StratusClouds:
+                        return new byte[]{6, 0, 0, 0};
+                }
+                return new byte[]{0, 0, 0, 0};
+            }
+
             public string GetCatString()
             {
                 string catString = "";
                 switch (CategoryClouds)
                 {
-                    case Atmosphere.CloudsLayer.CloudsCat.ClearClouds:
+                    case CloudsCat.ClearClouds:
                         catString = "Clear Clouds";
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.CirrusClouds:
+                    case CloudsCat.CirrusClouds:
                         catString = "Cirrus Clouds";
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.FewClouds:
+                    case CloudsCat.FewClouds:
                         catString = "Few Clouds";
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.ScatteredClouds:
+                    case CloudsCat.ScatteredClouds:
                         catString = "Scattered Clouds";
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.BrokenClouds:
+                    case CloudsCat.BrokenClouds:
                         catString = "Broken Clouds";
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.OvercastClouds:
+                    case CloudsCat.OvercastClouds:
                         catString = "Overcast Clouds";
                         break;
-                    case Atmosphere.CloudsLayer.CloudsCat.StratusClouds:
+                    case CloudsCat.StratusClouds:
                         catString = "Stratus Clouds";
                         break;
                 }
@@ -146,61 +171,61 @@ namespace XplaneControl
 
         }
 
-        public Atmosphere.CloudsLayer.CloudsCat GetCloudsCat(string cat)
+        public CloudsLayer.CloudsCat GetCloudsCat(string cat)
         {
             CloudsLayer.CloudsCat cloudsCat = CloudsLayer.CloudsCat.ClearClouds;
             switch (cat)
             {
                 case "Clear Clouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.ClearClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.ClearClouds;
                     break;
                 case "Cirrus Clouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.CirrusClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.CirrusClouds;
                     break;
                 case "Few Clouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.FewClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.FewClouds;
                     break;
                 case "Scattered Clouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.ScatteredClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.ScatteredClouds;
                     break;
                 case "Broken Clouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.BrokenClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.BrokenClouds;
                     break;
                 case "OvercastClouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.OvercastClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.OvercastClouds;
                     break;
                 case "StratusClouds":
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.StratusClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.StratusClouds;
                     break;
             }
 
             return cloudsCat;
         }
-        public Atmosphere.CloudsLayer.CloudsCat GetCloudsCat(float cat)
+        public CloudsLayer.CloudsCat GetCloudsCat(float cat)
         {
             CloudsLayer.CloudsCat cloudsCat = CloudsLayer.CloudsCat.ClearClouds;
             switch (cat)
             {
                 case 0:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.ClearClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.ClearClouds;
                     break;
                 case 1:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.CirrusClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.CirrusClouds;
                     break;
                 case 2:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.FewClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.FewClouds;
                     break;
                 case 3:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.ScatteredClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.ScatteredClouds;
                     break;
                 case 4:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.BrokenClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.BrokenClouds;
                     break;
                 case 5:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.OvercastClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.OvercastClouds;
                     break;
                 case 6:
-                    cloudsCat = Atmosphere.CloudsLayer.CloudsCat.StratusClouds;
+                    cloudsCat = CloudsLayer.CloudsCat.StratusClouds;
                     break;
             }
             return cloudsCat;

@@ -6,7 +6,7 @@ using XplaneConnection_NF;
 
 namespace XplaneControl
 {
-    public class CmdEncoder
+    public static class CmdEncoder
     {
         public static byte[] encodeCommandToBytes(string message, ConnectionType connectionType)
         {
@@ -56,6 +56,7 @@ namespace XplaneControl
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.Visibility), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.Rain), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.Storm), 4, true));
+
             int rwStat = 0;
             switch (stats.RunWayStat)
             {
@@ -69,6 +70,7 @@ namespace XplaneControl
                     rwStat = 2;
                     break;
             }
+
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(rwStat), 4, false));
             if (stats.RunWayPatches)
                 rwStat = 1;
@@ -82,38 +84,38 @@ namespace XplaneControl
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.termStr), 4, true));
 
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer3.GetCatNum()), 4, false));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer2.GetCatNum()), 4, false));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer1.GetCatNum()), 4, false));
+            output.AddRange(stats.CloudsLayer1.GetCatByte());
+            output.AddRange(stats.CloudsLayer2.GetCatByte());
+            output.AddRange(stats.CloudsLayer3.GetCatByte());
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer3.BaseHight), 4, true));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer2.BaseHight), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer1.BaseHight), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer2.BaseHight), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer3.BaseHight), 4, true));
 
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer1.TopHight), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer2.TopHight), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer3.TopHight), 4, true));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.CloudsLayer1.TopHight), 4, true));
 
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Altitude), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer1.Altitude), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Altitude), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Altitude), 4, true));
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Direction), 4, true));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Direction), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer1.Direction), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Direction), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Direction), 4, true));
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Strength), 4, true));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Strength), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer1.Strength), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Strength), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Strength), 4, true));
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Gusts), 4, true));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Gusts), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer1.Gusts), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Gusts), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Gusts), 4, true));
 
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Turbulence), 4, true));
-            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Turbulence), 4, true));
             output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer1.Turbulence), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer2.Turbulence), 4, true));
+            output.AddRange(MakeBytesArray(BitConverter.GetBytes(stats.WindLayer3.Turbulence), 4, true));
             return output.ToArray();
         }
         
@@ -142,7 +144,7 @@ namespace XplaneControl
 
         public static byte[] encodeCommandToBytes(string text)
         {
-            string header = DataEncoder.GetHeaderString(text, ConnectionType.Command);
+            string header = ByteOperations.GetHeaderString(text, ConnectionType.Command);
             var messageLength = 0;
             string message = "";
             int pos = 0;
@@ -167,7 +169,7 @@ namespace XplaneControl
             byte[] answerBytes = new byte[messageLength];
             for (int i = 0; i < answerBytes.Length; i++)
                 answerBytes[i] = 0;
-            byte[] hdrBytes = DataEncoder.GetHeaderBytes(header, ConnectionType.Command);
+            byte[] hdrBytes = ByteOperations.GetHeaderBytes(header, ConnectionType.Command);
             for (int i = 0; i < hdrBytes.Length; i++)
             {
                 answerBytes[i] = hdrBytes[i];
@@ -202,10 +204,10 @@ namespace XplaneControl
             return answerBytes;
         }
 
-        public byte[] MoveToAirportBytes(string code, string place)
+        public static byte[] MoveToAirportBytes(string code, string place)
         {
             byte[] output = new byte[69];
-            XAirport airport = DataEncoder.GetAirport(code);
+            XAirport airport = ByteOperations.GetAirport(code);
 
             for (int i = 0; i < output.Length; i++)
                 output[i] = 0;
